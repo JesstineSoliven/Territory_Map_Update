@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Territory Completion Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── Top status bar ─────────────────────────────────────────── -->
+  <header class="status-bar">
+    <div class="app-title">
+      <span class="title-icon">◈</span>
+      MONUMENTO TERRITORY MAP
+    </div>
+    <div class="meta-cluster">
+<span class="timestamp" id="last-updated">NOT SYNCED</span>
+      <button class="refresh-btn" id="refresh-btn" title="Refresh territory data">
+        <span class="btn-icon">↻</span>
+        REFRESH MAP
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Filter bar ────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label" for="filter-status">STATUS</label>
+      <select class="filter-select" id="filter-status">
+        <option value="">All Statuses</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="filter-remarks">REMARKS</label>
+      <select class="filter-select" id="filter-remarks">
+        <option value="">All Remarks</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="filter-date-from">FROM DATE</label>
+      <input class="filter-input" type="date" id="filter-date-from">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="filter-date-to">TO DATE</label>
+      <input class="filter-input" type="date" id="filter-date-to">
+    </div>
+    <button class="btn-clear" id="clear-filters" title="Clear all filters">✕ CLEAR</button>
+    <span class="filter-result-count" id="filter-result-count"></span>
+  </div>
+
+  <!-- ── Main content ───────────────────────────────────────────── -->
+  <main class="viewport">
+
+    <!-- Error banner (hidden unless fetch fails) -->
+    <div class="error-banner hidden" id="error-banner" role="alert"></div>
+
+    <!-- Map card -->
+    <div class="map-card">
+
+      <!-- Loading overlay -->
+      <div class="spinner-wrap" id="loading-spinner">
+        <div class="spinner"></div>
+        <span class="spinner-label">Fetching territory data&hellip;</span>
+      </div>
+
+      <!-- Map image + canvas overlay container -->
+      <div class="map-container" id="map-container">
+        <img
+          id="map-image"
+          src="../[BOE PREFERRED] 2025 MONUMENTO TERRITORY MAP (2)_page-0001.jpg"
+          alt="2025 Monumento Territory Map"
+          loading="lazy"
+        >
+        <!-- Canvas is sized + positioned by app.js -->
+        <canvas id="overlay-canvas" aria-hidden="true"></canvas>
+      </div>
+
+    </div><!-- /map-card -->
+
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

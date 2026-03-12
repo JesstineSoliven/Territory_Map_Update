@@ -1,0 +1,5 @@
+# Local config — contains real API key, never commit
+territory-app/config.js
+
+# Claude internal files
+.claude/
