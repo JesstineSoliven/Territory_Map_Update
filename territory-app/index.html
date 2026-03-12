@@ -19,6 +19,9 @@
     </div>
     <div class="meta-cluster">
 <span class="timestamp" id="last-updated">NOT SYNCED</span>
+      <button class="submit-btn" id="submit-btn" title="Submit a completed territory">
+        ✚ SUBMIT TERRITORY
+      </button>
       <button class="settings-btn" id="settings-btn" title="Open settings" aria-label="Open settings">⚙</button>
       <button class="refresh-btn" id="refresh-btn" title="Refresh territory data">
         <span class="btn-icon">↻</span>
@@ -161,6 +164,27 @@
 
     </div><!-- /settings-drawer-body -->
   </aside>
+
+  <!-- ── Form Modal Backdrop ───────────────────────────────────── -->
+  <div class="form-backdrop hidden" id="form-backdrop" aria-hidden="true"></div>
+
+  <!-- ── Form Modal ────────────────────────────────────────────── -->
+  <div class="form-modal hidden" id="form-modal" role="dialog" aria-modal="true" aria-label="Submit Completed Territory">
+    <header class="form-modal-header">
+      <span class="form-modal-title">✚ SUBMIT COMPLETED TERRITORY</span>
+      <button class="form-close-btn" id="form-close-btn" aria-label="Close form">✕</button>
+    </header>
+    <div class="form-modal-body">
+      <iframe
+        id="form-iframe"
+        src="https://docs.google.com/forms/d/e/1FAIpQLSfKnITtgNWD69j2EUGD6vSTfwKLkWdZ9G8FdKZkLW73Xmvmjw/viewform?embedded=true"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        title="Submit Completed Territory Form"
+      >Loading form…</iframe>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="app.js"></script>

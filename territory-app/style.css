@@ -694,3 +694,118 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-glow);
 }
+
+/* ── Submit Territory Button ────────────────────────────────── */
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    transform 100ms var(--ease-out);
+}
+.submit-btn:hover {
+  background: rgba(0, 212, 170, 0.22);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.submit-btn:active { transform: scale(0.97); }
+
+/* ── Form Modal Backdrop ────────────────────────────────────── */
+.form-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 24, 0.80);
+  backdrop-filter: blur(4px);
+  z-index: 299;
+}
+.form-backdrop.hidden { display: none; }
+
+/* ── Form Modal ─────────────────────────────────────────────── */
+.form-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 96vw);
+  height: min(88vh, 860px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 170, 0.12),
+    0 24px 80px rgba(0, 0, 0, 0.70);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.form-modal.hidden { display: none; }
+
+.form-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--accent-border);
+  background: var(--bg-floating);
+  flex-shrink: 0;
+}
+.form-modal-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.form-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: border-color 150ms, color 150ms;
+}
+.form-close-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.form-modal-body {
+  flex: 1;
+  overflow: hidden;
+}
+.form-modal-body iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .form-modal {
+    width: 100vw;
+    height: 100dvh;
+    top: 0;
+    left: 0;
+    transform: none;
+    border-radius: 0;
+    border: none;
+  }
+}

@@ -807,4 +807,31 @@ function initSettings() {
 }
 
 
+// ── Form Modal ───────────────────────────────────────────────────
+(function () {
+  const submitBtn   = document.getElementById('submit-btn');
+  const formModal   = document.getElementById('form-modal');
+  const formBackdrop = document.getElementById('form-backdrop');
+  const formCloseBtn = document.getElementById('form-close-btn');
+
+  submitBtn.addEventListener('click', () => {
+    formModal.classList.remove('hidden');
+    formBackdrop.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeFormModal() {
+    formModal.classList.add('hidden');
+    formBackdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  formCloseBtn.addEventListener('click', closeFormModal);
+  formBackdrop.addEventListener('click', closeFormModal);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !formModal.classList.contains('hidden')) closeFormModal();
+  });
+})();
+
 document.addEventListener('DOMContentLoaded', init);
