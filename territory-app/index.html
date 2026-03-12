@@ -19,6 +19,7 @@
     </div>
     <div class="meta-cluster">
 <span class="timestamp" id="last-updated">NOT SYNCED</span>
+      <button class="settings-btn" id="settings-btn" title="Open settings" aria-label="Open settings">⚙</button>
       <button class="refresh-btn" id="refresh-btn" title="Refresh territory data">
         <span class="btn-icon">↻</span>
         REFRESH MAP
@@ -82,6 +83,84 @@
     </div><!-- /map-card -->
 
   </main>
+
+  <!-- ── Settings Backdrop ──────────────────────────────────────── -->
+  <div class="settings-backdrop hidden" id="settings-backdrop" aria-hidden="true"></div>
+
+  <!-- ── Settings Drawer ───────────────────────────────────────── -->
+  <aside class="settings-drawer hidden" id="settings-drawer" role="dialog" aria-modal="true" aria-label="Settings">
+
+    <header class="settings-drawer-header">
+      <span class="settings-drawer-title">⚙ SETTINGS</span>
+      <button class="settings-close-btn" id="settings-close-btn" aria-label="Close settings">✕</button>
+    </header>
+
+    <div class="settings-drawer-body">
+
+      <!-- Section: Overlay Colors -->
+      <section class="settings-section">
+        <h2 class="settings-section-title">OVERLAY COLORS</h2>
+
+        <div class="settings-row">
+          <label class="settings-label" for="s-fill-color">FINISHED FILL</label>
+          <div class="color-control">
+            <input type="color" class="color-picker" id="s-fill-color">
+            <input type="range" class="alpha-slider" id="s-fill-alpha" min="0" max="1" step="0.01" value="0.70">
+            <span class="alpha-readout" id="s-fill-alpha-out">70%</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="s-stroke-color">FINISHED BORDER</label>
+          <div class="color-control">
+            <input type="color" class="color-picker" id="s-stroke-color">
+            <input type="range" class="alpha-slider" id="s-stroke-alpha" min="0" max="1" step="0.01" value="0.97">
+            <span class="alpha-readout" id="s-stroke-alpha-out">97%</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="s-fill-color-uf">UNFINISHED FILL</label>
+          <div class="color-control">
+            <input type="color" class="color-picker" id="s-fill-color-uf">
+            <input type="range" class="alpha-slider" id="s-fill-alpha-uf" min="0" max="1" step="0.01" value="0.57">
+            <span class="alpha-readout" id="s-fill-alpha-uf-out">57%</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="s-stroke-color-uf">UNFINISHED BORDER</label>
+          <div class="color-control">
+            <input type="color" class="color-picker" id="s-stroke-color-uf">
+            <input type="range" class="alpha-slider" id="s-stroke-alpha-uf" min="0" max="1" step="0.01" value="1.0">
+            <span class="alpha-readout" id="s-stroke-alpha-uf-out">100%</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="s-label-color">LABEL TEXT COLOR</label>
+          <div class="color-control">
+            <input type="color" class="color-picker" id="s-label-color">
+          </div>
+        </div>
+
+        <button class="settings-action-btn" id="s-apply-colors">APPLY COLORS</button>
+        <button class="settings-action-btn settings-action-btn--ghost" id="s-reset-colors">RESET TO DEFAULTS</button>
+      </section>
+
+      <!-- Section: Territory Coordinates -->
+      <section class="settings-section">
+        <h2 class="settings-section-title">TERRITORY COORDINATES</h2>
+        <p class="settings-hint">Values are % of map image size (0–100). Edit then tap Save.</p>
+        <div class="coords-list" id="coords-list">
+          <!-- Populated by JS -->
+        </div>
+        <button class="settings-action-btn" id="s-apply-coords">SAVE COORDINATES</button>
+        <button class="settings-action-btn settings-action-btn--ghost" id="s-reset-coords">RESET TO DEFAULTS</button>
+      </section>
+
+    </div><!-- /settings-drawer-body -->
+  </aside>
 
   <script src="config.js"></script>
   <script src="app.js"></script>

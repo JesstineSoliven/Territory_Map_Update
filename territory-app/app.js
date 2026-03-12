@@ -85,6 +85,44 @@ const CONFIG = {
 };
 
 
+/* ── Section B2: Settings Helpers ───────────────────────────── */
+
+/** Convert any CSS color string to #rrggbb hex (strips alpha). */
+function cssColorToHex(cssColor) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = cssColor;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+/** Build an rgba() string from hex + 0–1 alpha. */
+function hexAlphaToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Default color values (derived from CONFIG before any localStorage override)
+const DEFAULT_COLORS = {
+  fillColor:             cssColorToHex(CONFIG.FILL_COLOR),
+  fillAlpha:             0.70,
+  strokeColor:           cssColorToHex(CONFIG.STROKE_COLOR),
+  strokeAlpha:           0.97,
+  fillColorUnfinished:   cssColorToHex(CONFIG.FILL_COLOR_UNFINISHED),
+  fillAlphaUnfinished:   0.57,
+  strokeColorUnfinished: cssColorToHex(CONFIG.STROKE_COLOR_UNFINISHED),
+  strokeAlphaUnfinished: 1.0,
+  labelColor:            '#000000',
+};
+
+// Deep copy of original coordinates before any localStorage override
+const DEFAULT_COORDS = JSON.parse(JSON.stringify(TERRITORY_COORDS));
+
+
 /* ── Section C: State ───────────────────────────────────────── */
 // Keep track of the last fetched finished set so ResizeObserver can redraw
 let lastFinishedSet = new Set();
@@ -501,6 +539,8 @@ updatedEl.textContent = 'FETCH FAILED';
 /* ── Section I: Initialisation ──────────────────────────────── */
 
 function init() {
+  initSettings();
+
   const img        = document.getElementById('map-image');
   const refreshBtn = document.getElementById('refresh-btn');
 
@@ -557,5 +597,214 @@ function init() {
     }, { once: true });
   }
 }
+
+/* ── Section J: Settings Drawer ─────────────────────────────── */
+
+const LS_KEY = 'terrmap_settings';
+
+function loadSavedSettings() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) { return null; }
+}
+
+function saveSettings(colors, coords) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ colors, coords }));
+  } catch (_) { /* quota exceeded / private mode — skip silently */ }
+}
+
+function applySettingsToRuntime(saved) {
+  if (!saved) return;
+  const { colors, coords } = saved;
+
+  if (colors) {
+    if (colors.fillColor !== undefined && colors.fillAlpha !== undefined)
+      CONFIG.FILL_COLOR = hexAlphaToRgba(colors.fillColor, colors.fillAlpha);
+    if (colors.strokeColor !== undefined && colors.strokeAlpha !== undefined)
+      CONFIG.STROKE_COLOR = hexAlphaToRgba(colors.strokeColor, colors.strokeAlpha);
+    if (colors.fillColorUnfinished !== undefined && colors.fillAlphaUnfinished !== undefined)
+      CONFIG.FILL_COLOR_UNFINISHED = hexAlphaToRgba(colors.fillColorUnfinished, colors.fillAlphaUnfinished);
+    if (colors.strokeColorUnfinished !== undefined && colors.strokeAlphaUnfinished !== undefined)
+      CONFIG.STROKE_COLOR_UNFINISHED = hexAlphaToRgba(colors.strokeColorUnfinished, colors.strokeAlphaUnfinished);
+    if (colors.labelColor !== undefined)
+      CONFIG.LABEL_COLOR = colors.labelColor;
+  }
+
+  if (coords) {
+    Object.keys(coords).forEach(id => {
+      if (TERRITORY_COORDS[id]) Object.assign(TERRITORY_COORDS[id], coords[id]);
+    });
+  }
+}
+
+function buildCoordCards() {
+  const list = document.getElementById('coords-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  Object.keys(TERRITORY_COORDS)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(id => {
+      const c = TERRITORY_COORDS[id];
+      const card = document.createElement('div');
+      card.className = 'coord-card';
+      card.dataset.id = id;
+      card.innerHTML =
+        `<span class="coord-card-id">${id.padStart(2, '0')}</span>` +
+        `<div class="coord-fields">` +
+        ['x', 'y', 'width', 'height'].map(field =>
+          `<label class="coord-field">` +
+          `<span class="coord-field-label">${field === 'width' ? 'W' : field === 'height' ? 'H' : field.toUpperCase()}</span>` +
+          `<input type="number" class="coord-input" data-field="${field}" min="0" max="100" step="0.1" value="${c[field]}">` +
+          `</label>`
+        ).join('') +
+        `</div>`;
+      list.appendChild(card);
+    });
+}
+
+function populateSettingsForm() {
+  const saved   = loadSavedSettings();
+  const colors  = (saved && saved.colors) ? saved.colors : {};
+
+  const setColor = (id, configColor) => {
+    const el = document.getElementById(id);
+    if (el) el.value = cssColorToHex(configColor);
+  };
+  const setAlpha = (sliderId, readoutId, alpha) => {
+    const slider  = document.getElementById(sliderId);
+    const readout = document.getElementById(readoutId);
+    if (slider)  slider.value = alpha;
+    if (readout) readout.textContent = Math.round(alpha * 100) + '%';
+  };
+
+  setColor('s-fill-color',      CONFIG.FILL_COLOR);
+  setAlpha('s-fill-alpha',      's-fill-alpha-out',      colors.fillAlpha             ?? 0.70);
+  setColor('s-stroke-color',    CONFIG.STROKE_COLOR);
+  setAlpha('s-stroke-alpha',    's-stroke-alpha-out',    colors.strokeAlpha           ?? 0.97);
+  setColor('s-fill-color-uf',   CONFIG.FILL_COLOR_UNFINISHED);
+  setAlpha('s-fill-alpha-uf',   's-fill-alpha-uf-out',   colors.fillAlphaUnfinished   ?? 0.57);
+  setColor('s-stroke-color-uf', CONFIG.STROKE_COLOR_UNFINISHED);
+  setAlpha('s-stroke-alpha-uf', 's-stroke-alpha-uf-out', colors.strokeAlphaUnfinished ?? 1.0);
+  setColor('s-label-color',     CONFIG.LABEL_COLOR);
+
+  // Wire alpha sliders → live readout
+  ['s-fill-alpha', 's-stroke-alpha', 's-fill-alpha-uf', 's-stroke-alpha-uf'].forEach(id => {
+    const slider  = document.getElementById(id);
+    const readout = document.getElementById(id + '-out');
+    if (slider && readout) {
+      slider.oninput = () => { readout.textContent = Math.round(slider.value * 100) + '%'; };
+    }
+  });
+
+  buildCoordCards();
+}
+
+function collectColorValues() {
+  const get = id => document.getElementById(id);
+  return {
+    fillColor:             get('s-fill-color')?.value    ?? DEFAULT_COLORS.fillColor,
+    fillAlpha:             parseFloat(get('s-fill-alpha')?.value     ?? DEFAULT_COLORS.fillAlpha),
+    strokeColor:           get('s-stroke-color')?.value  ?? DEFAULT_COLORS.strokeColor,
+    strokeAlpha:           parseFloat(get('s-stroke-alpha')?.value   ?? DEFAULT_COLORS.strokeAlpha),
+    fillColorUnfinished:   get('s-fill-color-uf')?.value ?? DEFAULT_COLORS.fillColorUnfinished,
+    fillAlphaUnfinished:   parseFloat(get('s-fill-alpha-uf')?.value  ?? DEFAULT_COLORS.fillAlphaUnfinished),
+    strokeColorUnfinished: get('s-stroke-color-uf')?.value ?? DEFAULT_COLORS.strokeColorUnfinished,
+    strokeAlphaUnfinished: parseFloat(get('s-stroke-alpha-uf')?.value ?? DEFAULT_COLORS.strokeAlphaUnfinished),
+    labelColor:            get('s-label-color')?.value   ?? DEFAULT_COLORS.labelColor,
+  };
+}
+
+function collectCoordValues() {
+  const result = {};
+  document.querySelectorAll('.coord-card').forEach(card => {
+    const id = card.dataset.id;
+    const entry = {};
+    card.querySelectorAll('.coord-input').forEach(input => {
+      entry[input.dataset.field] = parseFloat(input.value) || 0;
+    });
+    result[id] = entry;
+  });
+  return result;
+}
+
+function openSettings() {
+  const drawer   = document.getElementById('settings-drawer');
+  const backdrop = document.getElementById('settings-backdrop');
+  populateSettingsForm();
+  drawer.classList.remove('hidden');
+  backdrop.classList.remove('hidden');
+  // Double rAF so display:none → display:flex transition fires correctly
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { drawer.classList.add('open'); });
+  });
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettings() {
+  const drawer   = document.getElementById('settings-drawer');
+  const backdrop = document.getElementById('settings-backdrop');
+  drawer.classList.remove('open');
+  drawer.addEventListener('transitionend', () => {
+    drawer.classList.add('hidden');
+    backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+  }, { once: true });
+}
+
+function initSettings() {
+  // Apply any saved settings to CONFIG + TERRITORY_COORDS before first canvas draw
+  applySettingsToRuntime(loadSavedSettings());
+
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
+  document.getElementById('settings-backdrop').addEventListener('click', closeSettings);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const drawer = document.getElementById('settings-drawer');
+      if (drawer && drawer.classList.contains('open')) closeSettings();
+    }
+  });
+
+  document.getElementById('s-apply-colors').addEventListener('click', () => {
+    const colors = collectColorValues();
+    applySettingsToRuntime({ colors });
+    const saved = loadSavedSettings() || {};
+    saveSettings(colors, saved.coords || collectCoordValues());
+    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+  });
+
+  document.getElementById('s-reset-colors').addEventListener('click', () => {
+    applySettingsToRuntime({ colors: { ...DEFAULT_COLORS } });
+    const saved = loadSavedSettings() || {};
+    saveSettings({ ...DEFAULT_COLORS }, saved.coords || collectCoordValues());
+    populateSettingsForm();
+    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+  });
+
+  document.getElementById('s-apply-coords').addEventListener('click', () => {
+    const coords = collectCoordValues();
+    Object.keys(coords).forEach(id => {
+      if (TERRITORY_COORDS[id]) Object.assign(TERRITORY_COORDS[id], coords[id]);
+    });
+    const saved = loadSavedSettings() || {};
+    saveSettings(saved.colors || collectColorValues(), coords);
+    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+  });
+
+  document.getElementById('s-reset-coords').addEventListener('click', () => {
+    Object.keys(DEFAULT_COORDS).forEach(id => {
+      if (TERRITORY_COORDS[id]) Object.assign(TERRITORY_COORDS[id], DEFAULT_COORDS[id]);
+    });
+    const saved = loadSavedSettings() || {};
+    saveSettings(saved.colors || collectColorValues(), JSON.parse(JSON.stringify(DEFAULT_COORDS)));
+    buildCoordCards();
+    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+  });
+}
+
 
 document.addEventListener('DOMContentLoaded', init);
