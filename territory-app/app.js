@@ -754,6 +754,18 @@ function closeSettings() {
   }, { once: true });
 }
 
+function showToast(message) {
+  const toast = document.getElementById('settings-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.remove('toast-active');
+  // Force reflow so re-triggering animation works
+  void toast.offsetWidth;
+  toast.classList.add('toast-active');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => toast.classList.remove('toast-active'), 2500);
+}
+
 function initSettings() {
   // Apply any saved settings to CONFIG + TERRITORY_COORDS before first canvas draw
   applySettingsToRuntime(loadSavedSettings());
@@ -774,7 +786,8 @@ function initSettings() {
     applySettingsToRuntime({ colors });
     const saved = loadSavedSettings() || {};
     saveSettings(colors, saved.coords || collectCoordValues());
-    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+    drawOverlays(lastFinishedSet);
+    showToast('Colors applied successfully');
   });
 
   document.getElementById('s-reset-colors').addEventListener('click', () => {
@@ -782,7 +795,8 @@ function initSettings() {
     const saved = loadSavedSettings() || {};
     saveSettings({ ...DEFAULT_COLORS }, saved.coords || collectCoordValues());
     populateSettingsForm();
-    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+    drawOverlays(lastFinishedSet);
+    showToast('Colors reset to defaults');
   });
 
   document.getElementById('s-apply-coords').addEventListener('click', () => {
@@ -792,7 +806,8 @@ function initSettings() {
     });
     const saved = loadSavedSettings() || {};
     saveSettings(saved.colors || collectColorValues(), coords);
-    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+    drawOverlays(lastFinishedSet);
+    showToast('Coordinates saved successfully');
   });
 
   document.getElementById('s-reset-coords').addEventListener('click', () => {
@@ -802,7 +817,8 @@ function initSettings() {
     const saved = loadSavedSettings() || {};
     saveSettings(saved.colors || collectColorValues(), JSON.parse(JSON.stringify(DEFAULT_COORDS)));
     buildCoordCards();
-    if (lastFinishedSet.size > 0) drawOverlays(lastFinishedSet);
+    drawOverlays(lastFinishedSet);
+    showToast('Coordinates reset to defaults');
   });
 }
 
