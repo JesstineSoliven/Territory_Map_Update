@@ -19,6 +19,7 @@
     </div>
     <div class="meta-cluster">
 <span class="timestamp" id="last-updated">NOT SYNCED</span>
+<span class="sync-status" id="sync-status" title="Firebase sync status">⬤ LOCAL</span>
       <button class="submit-btn" id="submit-btn" title="Submit a completed territory">
         ✚ SUBMIT TERRITORY
       </button>
@@ -188,6 +189,10 @@
 
   <div id="settings-toast"></div>
 
+  <!-- Firebase SDK (compat build — CDN, no build step required) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>

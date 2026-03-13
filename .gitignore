@@ -1,5 +1,6 @@
-# Local config — contains real API key, never commit
+# Local config — contains real API keys, never commit
 territory-app/config.js
+territory-app/firebase-config.js
 
 # Claude internal files
 .claude/

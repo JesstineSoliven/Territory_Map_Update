@@ -123,6 +123,44 @@ const DEFAULT_COLORS = {
 const DEFAULT_COORDS = JSON.parse(JSON.stringify(TERRITORY_COORDS));
 
 
+/* ── Section B3: Firebase Realtime Database ─────────────────── */
+
+let _fbDatabase        = null;   // firebase.database() instance, or null
+let _fbSettingsRef     = null;   // DatabaseReference for the settings node
+let _fbReady           = false;  // true once listener is attached
+let _suppressNextWrite = false;  // prevents echo when onValue fires from our own save
+
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined' || typeof FIREBASE_CONFIG === 'undefined') return null;
+    if (!FIREBASE_CONFIG.databaseURL || FIREBASE_CONFIG.databaseURL.includes('YOUR_PROJECT')) return null;
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    _fbDatabase    = firebase.database();
+    _fbSettingsRef = _fbDatabase.ref('terrmap/settings');
+    _fbReady       = true;
+    setSyncStatus('connecting');
+    return _fbDatabase;
+  } catch (err) {
+    console.warn('[TerrMap] Firebase init failed — using localStorage only.', err);
+    return null;
+  }
+}
+
+function setSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const labels = {
+    local:       '⬤ LOCAL',
+    connecting:  '◌ CONNECTING',
+    syncing:     '◌ SYNCING',
+    synced:      '⬤ SYNCED',
+    error:       '⬤ SYNC ERR',
+  };
+  el.textContent   = labels[state] || state;
+  el.dataset.state = state;
+}
+
+
 /* ── Section C: State ───────────────────────────────────────── */
 // Keep track of the last fetched finished set so ResizeObserver can redraw
 let lastFinishedSet = new Set();
@@ -610,9 +648,22 @@ function loadSavedSettings() {
 }
 
 function saveSettings(colors, coords) {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ colors, coords }));
-  } catch (_) { /* quota exceeded / private mode — skip silently */ }
+  const payload = { colors, coords };
+
+  // Always write locally as a fallback
+  try { localStorage.setItem(LS_KEY, JSON.stringify(payload)); } catch (_) {}
+
+  // Write to Firebase if available
+  if (_fbReady && _fbSettingsRef) {
+    setSyncStatus('syncing');
+    _suppressNextWrite = true;
+    _fbSettingsRef.set(payload)
+      .then(() => setSyncStatus('synced'))
+      .catch(err => {
+        setSyncStatus('error');
+        console.warn('[TerrMap] Firebase write failed — localStorage used.', err);
+      });
+  }
 }
 
 function applySettingsToRuntime(saved) {
@@ -820,6 +871,26 @@ function initSettings() {
     drawOverlays(lastFinishedSet);
     showToast('Coordinates reset to defaults');
   });
+
+  // ── Firebase real-time listener ──────────────────────────────
+  initFirebase();
+  if (_fbReady && _fbSettingsRef) {
+    _fbSettingsRef.on('value', snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      if (_suppressNextWrite) { _suppressNextWrite = false; return; }
+      // Another device saved settings — apply here
+      try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (_) {}
+      applySettingsToRuntime(data);
+      populateSettingsForm();
+      drawOverlays(lastFinishedSet);
+      setSyncStatus('synced');
+      showToast('Settings synced from another device');
+    }, err => {
+      setSyncStatus('error');
+      console.warn('[TerrMap] Firebase listener error:', err);
+    });
+  }
 }
 
 

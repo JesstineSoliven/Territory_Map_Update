@@ -121,6 +121,38 @@ body {
   color: var(--text-on-dark-dim);
 }
 
+/* ── Firebase Sync Status Indicator ─────────────────────────── */
+.sync-status {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-on-dark-dim);
+  padding: 0.18rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: color 300ms ease, border-color 300ms ease;
+  white-space: nowrap;
+}
+.sync-status[data-state="synced"] {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.30);
+}
+.sync-status[data-state="syncing"],
+.sync-status[data-state="connecting"] {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.30);
+  animation: sync-pulse 1.2s ease-in-out infinite;
+}
+.sync-status[data-state="error"] {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.30);
+}
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
 /* ── Refresh Button ─────────────────────────────────────────── */
 .refresh-btn {
   display: flex;
